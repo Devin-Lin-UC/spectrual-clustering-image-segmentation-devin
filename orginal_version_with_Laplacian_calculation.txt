@@ -1,0 +1,229 @@
+import numpy as np
+import math
+import random  # Import random module
+from numpy.linalg import eig
+import matplotlib.pyplot as plt
+
+# 20 data points
+data_points = [(3.715, 5.087),
+    (0.974, 6.105),
+    (3.739, 8.241),
+    (3.152, 4.933),
+    (0.643, 6.743),
+    (1.565, 5.567),
+    (2.722, 6.763),
+    (2.013, 3.977),
+    (4.570, 7.517),
+    (2.944, 5.764),
+    (14.432, 4.757),
+    (13.226, 5.122),
+    (9.206, 2.574),
+    (9.788, 4.607),
+    (14.530, 5.634),
+    (14.274, 2.299),
+    (10.050, 1.891),
+    (13.914, 0.979),
+    (14.606, 5.143),
+    (14.021, 4.377)
+]
+
+beta = 1 / 50
+
+n = len(data_points)
+
+# Initialize W as a zero matrix of size n x n
+W = np.zeros((n, n))
+
+# Compute weights
+for i in range(n):
+    for j in range(n):
+        if i != j:  # Skip diagonal elements
+            xi, yi = data_points[i]
+            xj, yj = data_points[j]
+            W[i][j] = math.exp(-beta * ((xi - xj) ** 2 + (yi - yj) ** 2))
+    
+
+# Display the resulting W matrix
+print("W matrix:")
+print(W)
+
+# Compute the diagonal matrix D
+D = np.diag(np.sum(W, axis=1))  # Diagonal elements are row sums of W
+
+# Display the D matrix
+print("\nD matrix:")
+print(D)
+
+L = D - W
+
+print(f'The Laplacian matrix for {data_points} is:')
+print(L)
+print()
+
+values, vectors = eig(L)
+vectors = np.transpose(vectors)
+
+# Sort eigenvalues and eigenvectors in ascending order
+sorted_indices = np.argsort(values)
+values = values[sorted_indices]
+vectors = vectors[sorted_indices, :]
+
+
+for i in range(len(values)):
+    print(f'eigenvalue {i+1}: {round(values[i],4)}')
+    print(f'eigenvector {i+1}: {np.round(vectors[i],4)}')
+    print()
+
+print(f'The U matrix for {data_points} is:')
+U = np.array([vectors[1],
+              vectors[2]])
+U = np.transpose(U)
+
+print(U)
+print()
+print(f'Therefore we have:')
+for i in range(n):
+    print(f'y{i+1} = {U[i]}')
+print()
+
+'''K-MEANS ALGORITHM'''
+# Map labels to points
+labels = [f'y{i+1}' for i in range(n)]
+
+# Create a list of all points
+points = list(range(1, n + 1))
+
+# Randomly select one point for each of C1 and C2 to begin with
+initial_C1 = random.choice(points)   # Convert to 0-based indexing
+points.remove(initial_C1)          # Remove the 1-based index from the list
+initial_C2 = random.choice(points)   # Convert to 0-based indexing
+points.remove(initial_C2)          # Remove the 1-based index from the list
+
+# Initialize clusters with the selected initial points
+C1 = [initial_C1]
+C2 = [initial_C2]
+
+
+# Assign remaining points with a 50% chance to either C1 or C2
+for point in points:
+    if random.random() < 0.5:  # 50% chance
+        C1.append(point)
+    else:
+        C2.append(point)
+
+# Print the results
+print(f"Cluster C1: {C1}")
+print(f"Cluster C2: {C2}")
+print()
+
+# Function to calculate the center of mass for a cluster
+def calculate_com(cluster):
+    points = [U[num-1] for num in cluster]
+    return np.mean(points, axis=0)
+
+# Function to assign a point to the nearest cluster
+def assign_to_cluster(point, cluster1_com, cluster2_com):
+    dist_to_c1 = np.linalg.norm(point - cluster1_com)
+    dist_to_c2 = np.linalg.norm(point - cluster2_com)
+    return 1 if dist_to_c1 < dist_to_c2 else 2
+
+# Iterative K-means loop
+iteration = 0
+
+while True and iteration <1000:
+    iteration += 1
+    print(f"\nIteration {iteration}:")
+    
+    # Calculate the center of mass for each cluster
+    C1_com = calculate_com(C1)
+    C2_com = calculate_com(C2)
+    print(f"C1 center of mass: {C1_com}")
+    print(f"C2 center of mass: {C2_com}")
+    
+    # Reassign points to the nearest cluster
+    new_C1, new_C2 = [], []
+    for i, point in enumerate(U):
+        cluster = assign_to_cluster(point, C1_com, C2_com)
+        if cluster == 1:
+            new_C1.append(i)
+        else:
+            new_C2.append(i)
+    
+    # Check if clusters have stabilized
+    if set(new_C1) == set(C1) and set(new_C2) == set(C2):
+        print("Clusters have stabilized!")
+        break
+
+    # Update clusters for the next iteration
+    C1, C2 = new_C1, new_C2
+    print(f"New Cluster 1: {[labels[i] for i in C1]}")
+    print(f"New Cluster 2: {[labels[i] for i in C2]}")
+
+# Final cluster results
+print("\nFinal Clusters:")
+print("Cluster 1 (C1):", [labels[i] for i in C1])
+print("Cluster 2 (C2):", [labels[i] for i in C2])
+
+
+
+
+# Plot the original data points and the centers of mass (Graph 1)
+cluster_1_points = [data_points[i] for i in C1]
+cluster_2_points = [data_points[i] for i in C2]
+
+# Create the first plot (original data points)
+plt.figure(figsize=(12, 6))
+
+# Plot points for cluster 1 (green)
+x1, y1 = zip(*cluster_1_points)
+plt.scatter(x1, y1, c='green', label='Cluster 1')
+
+# Plot points for cluster 2 (purple)
+x2, y2 = zip(*cluster_2_points)
+plt.scatter(x2, y2, c='purple', label='Cluster 2')
+
+# Plot the centers of mass
+C1_com_xy = np.mean(cluster_1_points, axis=0)
+C2_com_xy = np.mean(cluster_2_points, axis=0)
+
+plt.scatter(C1_com_xy[0], C1_com_xy[1], c='green', marker='x', s=100, label='COM Cluster 1')
+plt.scatter(C2_com_xy[0], C2_com_xy[1], c='purple', marker='x', s=100, label='COM Cluster 2')
+
+
+# Display the plot
+plt.legend()
+plt.title('K-means Clusters with Centers of Mass (Original Space)')
+plt.xlabel('X')
+plt.ylabel('Y')
+
+# Now, plot the transformed space (y1, y2) graph (Graph 2)
+# Use the first two components of U (already in the transformed space)
+transformed_data = U
+
+# Create the second plot (transformed data points)
+plt.figure(figsize=(12, 6))
+
+# Plot the transformed data points colored by cluster membership
+cluster_1_transformed = [transformed_data[i] for i in C1]
+cluster_2_transformed = [transformed_data[i] for i in C2]
+
+# Plot transformed points for cluster 1 (green)
+transformed_x1, transformed_y1 = zip(*cluster_1_transformed)
+plt.scatter(transformed_x1, transformed_y1, c='green', label='Cluster 1 (Transformed)')
+
+# Plot transformed points for cluster 2 (purple)
+transformed_x2, transformed_y2 = zip(*cluster_2_transformed)
+plt.scatter(transformed_x2, transformed_y2, c='purple', label='Cluster 2 (Transformed)')
+
+# Plot the centers of mass in transformed space
+plt.scatter(C1_com[0], C1_com[1], c='green', marker='x', s=100, label='COM Cluster 1 (Transformed)')
+plt.scatter(C2_com[0], C2_com[1], c='purple', marker='x', s=100, label='COM Cluster 2 (Transformed)')
+
+# Display the plot
+plt.legend()
+plt.title('Transformed K-means Clusters with Centers of Mass')
+plt.xlabel('y1')
+plt.ylabel('y2')
+
+# Show both plots
+plt.show()
