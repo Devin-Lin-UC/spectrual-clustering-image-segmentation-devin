@@ -50,7 +50,7 @@ image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clusterin
 # image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/moon_tree.jpg"
 # image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/mountain.jpg"
 # image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/pfp.jpg"
-image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/tree.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/tree.jpg"
 response = requests.get(image_path)
 if response.status_code == 200:
     image = Image.open(BytesIO(response.content))
