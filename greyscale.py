@@ -38,14 +38,24 @@ print('please wait for a minute or two')
 width, height = 80, 80
 
 
+
+import requests
+from PIL import Image
+from io import BytesIO
+
+
 '''uncomment the image you want to cluster'''
 '''----------------------------------------------------------------------------------------------------'''
-image_path = "images/house.jpg"
-# image_path = "images/moon.jpg"
-# image_path = "images/mountain.jpg"
-# image_path = "images/ppf.jpg"
-# image_path = "images/tree.jpg"
-image = Image.open(image_path)
+image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/house.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/moon_tree.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/mountain.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/pfp.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/tree.jpg"
+response = requests.get(image_path)
+if response.status_code == 200:
+    image = Image.open(BytesIO(response.content))
+else:
+    print(f"Error: Unable to fetch image, status code {response.status_code}")
 
 
 # Convert to grayscale
@@ -312,13 +322,9 @@ while True and iteration < 1000:
     # Reassign points to the nearest cluster
     new_clusters_label, new_clusters = assign_to_cluster(U, clusters_com)
     
-    # Print the cluster assignment for the current iteration
-    # for i in range(len(new_clusters_label)):
-    #     print(f"C{i+1} has: {new_clusters_label[i+1]}")
     
     # Check for convergence
     if new_clusters_label == previous_clusters_label:
-        # print("\nClusters stabilized. Stopping iteration.")
         break
     
     # Update the previous cluster labels and clusters
@@ -327,8 +333,6 @@ while True and iteration < 1000:
     clusters = new_clusters
 
     
-
-        
 
         
 '''Up till here, we fully obtained the clusters'''
