@@ -3,7 +3,7 @@ import subprocess
 
 # List of required packages
 required_packages = [
-    "numpy", "scipy", "matplotlib", "PILLOW"
+    "numpy", "scipy", "matplotlib", "PILLOW", 'requests'
 ]
 
 # Check and install missing packages
@@ -38,14 +38,24 @@ print('please wait for a minute or two')
 width, height = 80, 80
 
 
+
+import requests
+from PIL import Image
+from io import BytesIO
+
+
 '''uncomment the image you want to cluster'''
 '''----------------------------------------------------------------------------------------------------'''
-image_path = "images/house.jpg"
-# image_path = "images/moon.jpg"
-# image_path = "images/mountain.jpg"
-# image_path = "images/ppf.jpg"
-# image_path = "images/tree.jpg"
-image = Image.open(image_path)
+image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/house.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/moon_tree.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/mountain.jpg"
+# image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/pfp.jpg"
+image_path = "https://raw.githubusercontent.com/Devin-Lin-UC/spectrual-clustering-image-segmentation-devin/refs/heads/main/images/tree.jpg"
+response = requests.get(image_path)
+if response.status_code == 200:
+    image = Image.open(BytesIO(response.content))
+else:
+    print(f"Error: Unable to fetch image, status code {response.status_code}")
 
 
 # Resize the image to 100x100 pixels
@@ -85,7 +95,6 @@ def create_d_adj_list(picture, width, height):
     dcol_option = log_numbers(height)
     
     for row in range(height):
-        print(f'processing{row}')
         for col in range(width):
             
             current_index = row * width + col
@@ -298,7 +307,6 @@ while True and iteration < 1000:
 # Reshape the picture array into a 5x5 matrix
 picture = np.array(picture)
 picture_reshaped = picture.reshape(height, width, 3)
-print(picture_reshaped)
 
 colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
     "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7", "#dbdb8d", "#9edae5",
@@ -330,7 +338,6 @@ y = np.arange(height)
 # Create 2D grids for x and y
 X, Y = np.meshgrid(x, y)  # Shape of X and Y will both be (width, height)
 contour_height = np.zeros((height,width))
-print(contour_height.shape)
 
 
 # Fill in the contour grid with the cluster labels
@@ -347,7 +354,6 @@ cmap = ListedColormap(colors[:k-1])
 
 # Ensure discrete levels are used (match the number of clusters)
 contour_levels = np.arange(0, len(clusters_label) + 1)  # Make sure this aligns with your cluster values
-print(f"X shape: {X.shape}, Y shape: {Y.shape}, C shape: {contour_height.shape}")
 # Now plot the contour using your colormap
 contour = axs[1].pcolormesh(X,Y,contour_height, shading='nearest', cmap=cmap)
 
