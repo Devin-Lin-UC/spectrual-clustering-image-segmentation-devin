@@ -1,3 +1,19 @@
+import sys
+import subprocess
+
+# List of required packages
+required_packages = [
+    "numpy", "scipy", "matplotlib", "PILLOW"
+]
+
+# Check and install missing packages
+for package in required_packages:
+    try:
+        __import__(package if package != "PILLOW" else "PIL")
+    except ImportError:
+        print(f"Installing missing package: {package}")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 import numpy as np
 import math
 from scipy.sparse.linalg import eigsh
